@@ -27,14 +27,19 @@ A simplified, replicated GAS-like ability system. Incredibly lightweight and bac
 ## Example
 Quick example I made to showcase how the action of jumping can be created. Perhaps sometimes during the level you choose to enable or disable this.
 
-- In my Character.cpp
+~In my Character.cpp
 
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/SimpleActions/img_simplegas_blueprint_3.png?raw=true)
 
-- In Character Blueprint
+~In Character Blueprint
 
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/SimpleActions/img_simplegas_blueprint_4.png?raw=true)
 
-- Jump Action's Blueprint
+~Jump Action's Blueprint
 
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/SimpleActions/img_simplegas_blueprint_1.png?raw=true)
+
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/SimpleActions/img_simplegas_blueprint_2.png?raw=true)
 
 ## Dependencies
 - `GameplayTags` must be enabled for the project.
