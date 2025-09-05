@@ -19,7 +19,7 @@ A simple, replicated, Doom-inspired keycard system backed by Gameplay Tags. Desi
 ## Example
 Below is a common implementation for a door that requires a tag to unlock, and subsequently open:
 
-[[GameplayIdentity/img_identity_unlock_example.png|ExampleImage]]
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/GameplayIdentity/img_identity_unlock_example.png)
 
 ## Dependencies
 - The `GameplayTags` module must be enabled in your project.
