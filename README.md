@@ -1,10 +1,10 @@
 # Unreal Engine Open Source Collection
 A collection of open-source **code snippets, modules, and utilities** I made for for Unreal Engine over the years.
 
-# Usage
+## Usage
 My personal opinion is that individual **code snippets are more useful than packaged libraries**. You will **need to change the naming scheme of the symbols** for to suit your project's slug.
 
-# Folders
+## Content
 Here is a brief overview of the contents of each folder. For a more detailed explanation, please see the README.md file inside each folder.
 
 ---
