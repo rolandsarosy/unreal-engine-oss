@@ -1,4 +1,5 @@
-# Log On Screen with Netroles first.
+# Log On Screen with Netroles first
+
 A simple extension of `GEEngine->AddOnScreenDebugMessage` that adds a netrole prefix to the message.
 
 ## Usage example
