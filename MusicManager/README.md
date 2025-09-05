@@ -1,4 +1,4 @@
-# Replicated, synchronized music manager actor.
+# Replicated, synchronized music manager actor
 An in-world actor to act as a replicated, synchronized music player for multiplayer games. Supports licensed track skipping, looping at specific points after track end, custom fadeins, fadeouts, etc..
 
 ## Features
@@ -10,7 +10,7 @@ An in-world actor to act as a replicated, synchronized music player for multipla
 
 ## Design
 
-![image]()
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/MusicManager/img_music_player_design.png?raw=true)
 
 ## Core components
 - `MusicManager`: Actor that replicates and plays music in the world.
@@ -22,9 +22,9 @@ An in-world actor to act as a replicated, synchronized music player for multipla
 - Call `ServerStartPlayback` to start the music player at any point in your gameplay.
 
 ## Example
-Below is a common implementation for a door that requires a tag to unlock, and subsequently open:
+Below is a common implementation example:
 
-![image]()
+![image](https://github.com/rolandsarosy/unreal-engine-oss/blob/main/MusicManager/img_music_player_usage.png?raw=true)
 
 ## Dependencies
 - None.
