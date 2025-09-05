@@ -33,10 +33,16 @@ On-screen log function with a C++, replication focus. Prints out whether the cod
 
 ---
 ## Getting Started
-To use any of the code in this repository, simply clone or download the repository and copy the files you need into your Unreal Engine project. Each folder contains a more detailed README.md with specific instructions.
+To use any of the code in this repository, simply clone or download the repository, or copy the files you need into your Unreal Engine project. Each folder contains a more detailed README.md with specific instructions.
 
 ## Contributing
 Contributions are welcome! If you have any improvements or new additions, feel free to create a pull request. Please make sure to follow the existing code style and to update the relevant README.md files.
+
+## Questions and how-to
+Did I miss something, or not sure how to use the code I provided?
+You can reach out for questions by:
+- E-mail: `hello@rolandsarosy.com`
+- Opening a ticket :) 
 
 ## License
 This project is licensed under the MIT License.
