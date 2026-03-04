@@ -6,6 +6,7 @@ A simplified, replicated GAS-like ability system. Incredibly lightweight and bac
 - **Server-authoritative:** The host/server is the single source of truth.
 - **Simple:** GAS was a bit daunting for me to use in my tiny project. This is a much smaller scope.
 - **Actions and effects:** Supports both one-time actions and over-time effects.
+- **Payload support:** Add logic or tie-in behavior when adding/removing actions/effects.
 - **Backed by GameplayTags:** The entire feature set is backed and supported by GameplayTags, making it easy to use in most places in the engine.
 - **Blueprint Support:** Designed to be used within Blueprints. 
 
