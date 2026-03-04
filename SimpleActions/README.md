@@ -21,7 +21,8 @@ A simplified, replicated GAS-like ability system. Incredibly lightweight and bac
 - Create a set of Actions (one-time or over-time). Think of things like, jumping, swimming, fireball, opening doors, interacting, etc.
     - Assign an Action's `GrantsTags` and `BlocksTags` as well as `ActionTag` fields with relevant information.
     - Overwrite the Action's `StartAction` and `StopAction` functions as desired.
-    - If the action should not be able to be used at any point (granted no `BlockingTags`are found), you can overwrite the `CanStart` function to create logic for such cases.
+    - If the action should not be able to be used at specific points (granted no `BlockingTags`are found), you can overwrite the `CanStart` function to create logic for such cases.
+    - Optionally, add custom behavior to `OnActionAdded` or `OnActionRemoved`, such as showing a pop-up tutorial when receiving a new gadget, or removing keybind information from the HUD when losing a skill.
 - Assign Actions by default using the `ActionComponent`'s `DefaultActions` field or during gameplay with `AddAction` or `RemoveAction`
 - You are able to manually trigger actions as well, with `StartAction` or` StopAction`, if the given action is not in a character's control.
 
