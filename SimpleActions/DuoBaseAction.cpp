@@ -5,6 +5,20 @@
 #include "GameplayTagContainer.h"
 #include "DuoGame/DuoGame.h"
 
+void UDuoBaseAction::OnActionAdded_Implementation(AActor* Instigator)
+{
+	LogOnScreen(this, FString::Printf(TEXT("Added: %s"), *Tag.ToString()), FColor::Green, 1.0F); // Should be enabled for Action debugging.
+	ReplicationData.Instigator = Instigator;
+	// We really can't know whether the action is running at this point or not, so we're not updating that part of the struct.
+}
+
+void UDuoBaseAction::OnActionRemoved_Implementation(AActor* Instigator)
+{
+	LogOnScreen(this, FString::Printf(TEXT("Removed: %s"), *Tag.ToString()), FColor::Green, 1.0F); // Should be enabled for Action debugging.
+	ReplicationData.Instigator = Instigator;
+	ReplicationData.bIsRunning = false; // Always false at this point because to be able to remove an Action, it must be stopped beforehand, or by the ActionComponent.
+}
+
 void UDuoBaseAction::StartAction_Implementation(AActor* Instigator)
 {
 	LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *Tag.ToString()), FColor::Green, 1.0F); // Should be enabled for Action debugging.
@@ -54,11 +68,34 @@ void UDuoBaseAction::OnRep_ReplicationData()
 	}
 }
 
+int32 UDuoBaseAction::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
+{
+	if (UDuoActionComponent* Comp = GetOwningComponent()) return Comp->GetFunctionCallspace(Function, Stack);
+	return Super::GetFunctionCallspace(Function, Stack);
+}
+
+bool UDuoBaseAction::CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack)
+{
+	if (const UDuoActionComponent* Component = GetOwningComponent())
+	{
+		if (AActor* Owner = Component->GetOwner())
+		{
+			if (UNetDriver* NetDriver = Owner->GetNetDriver())
+			{
+				NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool UDuoBaseAction::IsRunning() const { return ReplicationData.bIsRunning; }
 
 UDuoActionComponent* UDuoBaseAction::GetOwningComponent() const { return Cast<UDuoActionComponent>(GetOuter()); }
 
-void UDuoBaseAction::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void UDuoBaseAction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
