@@ -52,6 +52,12 @@ public:
 	FActionReplicationData ReplicationData;
 
 	UFUNCTION(BlueprintNativeEvent, Category="Action")
+	void OnActionAdded(AActor* Instigator);
+	
+	UFUNCTION(BlueprintNativeEvent, Category="Action")
+	void OnActionRemoved(AActor* Instigator);
+	
+	UFUNCTION(BlueprintNativeEvent, Category="Action")
 	void StartAction(AActor* Instigator);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Action")
@@ -84,5 +90,7 @@ private:
 	UFUNCTION()
 	void OnRep_ReplicationData();
 
+	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override;
+	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, FOutParmRec* OutParms, FFrame* Stack) override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
 };
