@@ -8,6 +8,7 @@
 // Requires creation of a stat group for stat logging.
 // In your module's Game.h: DECLARE_STATS_GROUP(TEXT("DUOGAME_Game"), STATGROUP_DUOGAME, STATCAT_Advanced);
 DECLARE_CYCLE_STAT(TEXT("AddAction"), STAT_AddAction, STATGROUP_DUOGAME)
+DECLARE_CYCLE_STAT(TEXT("RemoveAction"), STAT_RemoveAction, STATGROUP_DUOGAME)
 DECLARE_CYCLE_STAT(TEXT("StartActionByTag"), STAT_StartActionByTag, STATGROUP_DUOGAME)
 DECLARE_CYCLE_STAT(TEXT("StopActionByTag"), STAT_StopActionByTag, STATGROUP_DUOGAME)
 
@@ -35,7 +36,11 @@ void UDuoActionComponent::OnRep_CurrentActions(TArray<UDuoBaseAction*> PreviousA
 	{
 		for (const auto& Action : CurrentActions)
 		{
-			if (!PreviousActions.Contains(Action)) { OnActionAdded.Broadcast(Action); }
+			if (!PreviousActions.Contains(Action))
+			{
+				Action->OnActionAdded(Action->ReplicationData.Instigator);
+				OnActionAdded.Broadcast(Action);
+			}
 		}
 	}
 
@@ -43,7 +48,11 @@ void UDuoActionComponent::OnRep_CurrentActions(TArray<UDuoBaseAction*> PreviousA
 	{
 		for (const auto& Action : PreviousActions)
 		{
-			if (!CurrentActions.Contains(Action)) { OnActionRemoved.Broadcast(Action); }
+			if (!CurrentActions.Contains(Action))
+			{
+				Action->OnActionRemoved(Action->ReplicationData.Instigator);
+				OnActionRemoved.Broadcast(Action);
+			}
 		}
 	}
 }
@@ -59,7 +68,6 @@ void UDuoActionComponent::BeginPlay()
 	}
 }
 
-// Use this only for debugging and such. Make sure this is disabled in a final build.
 void UDuoActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -76,9 +84,7 @@ void UDuoActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 }
 
 /**
- * Adds a new action to this ActionComponent. If the action has auto start set to true, it'll immediately be started.
- *
- * @note Auto start should usually be used by ActionEffects.
+ * Adds a new action to this ActionComponent. If the action has auto-start set to true, it'll immediately be started.
  *
  * @param ActionClass The class of the action to add.
  * @param Instigator The actor that initiated the action.
@@ -93,12 +99,21 @@ void UDuoActionComponent::AddAction(const TSubclassOf<UDuoBaseAction> ActionClas
 		UE_LOG(LogDuoGame, Warning, TEXT("A non-authoritative client attempted to add an action. [Class: %s]"), *GetNameSafe(ActionClass));
 		return;
 	}
-	
+
+	for (const TObjectPtr CurrentAction : CurrentActions)
+	{
+		if (CurrentAction && CurrentAction->IsA(ActionClass))
+		{
+			UE_SENTRY_LOG(LogDuoGame, Warning, TEXT("Action [%s] already exists on the ActionComponent! Aborting add."), *GetNameSafe(ActionClass));
+			return;
+		}
+	}
+
 	if (UDuoBaseAction* NewAction = NewObject<UDuoBaseAction>(this, ActionClass); ensure(NewAction))
 	{
-		const TArray<UDuoBaseAction*> PreviousStateActionList = CurrentActions; // Create a separate list for calling OnRep on server as OnRep does not get called automatically there.
+		const TArray<UDuoBaseAction*> PreviousStateActions = CurrentActions; // Create a separate list for calling OnRep on server as OnRep does not get called automatically there.
 		CurrentActions.Add(NewAction);
-		OnRep_CurrentActions(PreviousStateActionList);
+		OnRep_CurrentActions(PreviousStateActions);
 
 		if (NewAction->bAutoStart && NewAction->CanStart(Instigator))
 		{
@@ -107,16 +122,28 @@ void UDuoActionComponent::AddAction(const TSubclassOf<UDuoBaseAction> ActionClas
 	}
 }
 
+
 /**
  * Removes the specified action from the ActionComponent.
  *
  * @param ActionToRemove The action to remove.
- * @param Instigator
+ * @param Instigator is the instigator who requested the removal.
  */
 void UDuoActionComponent::RemoveAction(UDuoBaseAction* ActionToRemove, AActor* Instigator)
 {
-	if (!ensure(ActionToRemove && !ActionToRemove->IsRunning())) return;
+	SCOPE_CYCLE_COUNTER(STAT_RemoveAction)
+
+	if (!ensure(ActionToRemove))
+	{
+		UE_SENTRY_LOG(LogDuoGame, Error, TEXT("Tried to remove an action that is invalid. [Action: %s], [Instigator: %s]"), *ActionToRemove->Tag.ToString(), *GetNameSafe(Instigator));
+		LogOnScreen(this, FString::Printf(TEXT("Was unable to remove action: %s"), *ActionToRemove->Tag.ToString()), FColor::Red, 2.0F);
+	}
+
+	if (ActionToRemove->IsRunning()) { ActionToRemove->StopAction(Instigator); }
+
+	const TArray<UDuoBaseAction*> PreviousStateActions = CurrentActions; // Create a separate list for calling OnRep on server as OnRep does not get called automatically there.
 	CurrentActions.Remove(ActionToRemove);
+	OnRep_CurrentActions(PreviousStateActions);
 }
 
 /**
@@ -145,10 +172,7 @@ bool UDuoActionComponent::StartActionByTag(AActor* Instigator, const FGameplayTa
 	return false;
 }
 
-void UDuoActionComponent::ServerStartAction_Implementation(AActor* Instigator, const FGameplayTag Tag)
-{
-	StartActionByTag(Instigator, Tag);
-}
+void UDuoActionComponent::ServerStartAction_Implementation(AActor* Instigator, const FGameplayTag Tag) { StartActionByTag(Instigator, Tag); }
 
 /**
  * Stops the action with the specified tag for the given Instigator actor.
@@ -161,7 +185,7 @@ void UDuoActionComponent::ServerStartAction_Implementation(AActor* Instigator, c
 bool UDuoActionComponent::StopActionByTag(AActor* Instigator, const FGameplayTag Tag)
 {
 	SCOPE_CYCLE_COUNTER(STAT_StopActionByTag)
-	
+
 	for (UDuoBaseAction* Action : CurrentActions)
 	{
 		if (Action && Action->Tag == Tag && Action->IsRunning())
@@ -175,10 +199,7 @@ bool UDuoActionComponent::StopActionByTag(AActor* Instigator, const FGameplayTag
 	return false;
 }
 
-void UDuoActionComponent::ServerStopAction_Implementation(AActor* Instigator, const FGameplayTag Tag)
-{
-	StopActionByTag(Instigator, Tag);
-}
+void UDuoActionComponent::ServerStopAction_Implementation(AActor* Instigator, const FGameplayTag Tag) { StopActionByTag(Instigator, Tag); }
 
 /**
  * Returns the UDuoActionComponent attached to an AActor. If the AActor does not have a UDuoActionComponent, it returns nullptr.
@@ -216,3 +237,4 @@ void UDuoActionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(UDuoActionComponent, CurrentActions);
 }
+
